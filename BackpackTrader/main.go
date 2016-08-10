@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -8,8 +9,6 @@ import (
 	"os"
 	"regexp"
 	"strconv"
-
-	"github.com/tealeg/xlsx"
 )
 
 var keyPriceUrl = "http://www.trade.tf/"
@@ -18,29 +17,30 @@ func main() {
 	keyPrice := getKeyPrice()
 	fmt.Printf("Key price: %f\n", keyPrice)
 
-	excelFileName := os.Args[1]
-	fmt.Printf("Processing excel file: %s\n", excelFileName)
+	fileName := os.Args[1]
+	fmt.Printf("Processing csv file: %s\n", fileName)
 
-	xlFile, err := xlsx.OpenFile(excelFileName)
+	fh, err := os.Open(fileName)
 	if err != nil {
-		fmt.Printf("Error: can't open excel file: %s, msg: %s\n", excelFileName, err)
+		fmt.Printf("Error: can't open file: %s, msg: %s\n", fileName, err)
 		os.Exit(1)
 	}
 
-	sheet := xlFile.Sheets[0]
-	//sheet.Rows[1].Cells[8].Value = strconv.FormatFloat(keyPrice, 'f', -1, 64)
-	sheet.Rows[1].Cells[8].SetValue(keyPrice)
-	xlFile.Save(excelFileName + ".new.xlsx")
+	csvReader := csv.NewReader(fh)
+	records, err := csvReader.ReadAll()
 
-	for rowNumber, row := range sheet.Rows {
-		if len(row.Cells) < 6 {
-			break
-		}
-		itemUrl := row.Cells[5].Value
-		itemUrl, _ = url.QueryUnescape(itemUrl)
-		fmt.Printf("Cell num: %d\tUrl: %s\n", rowNumber+1, itemUrl)
+	if err != nil {
+		fmt.Printf("Error: can't parse file: %s, msg: %s\n", fileName, err)
+		os.Exit(1)
 	}
 
+	fmt.Println(len(records))
+	for _, row := range records {
+		url1, _ := url.QueryUnescape(row[0])
+		url2, _ := url.QueryUnescape(row[1])
+
+		fmt.Printf("url: %s  url2: %s\n", url1, url2)
+	}
 }
 
 func getKeyPrice() float64 {
