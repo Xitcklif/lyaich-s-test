@@ -29,7 +29,7 @@ func main() {
 
 	sheet := xlFile.Sheets[0]
 	//sheet.Rows[1].Cells[8].Value = strconv.FormatFloat(keyPrice, 'f', -1, 64)
-	//sheet.Rows[1].Cells[8].Value = "1"
+	sheet.Rows[1].Cells[8].SetValue(keyPrice)
 	xlFile.Save(excelFileName + ".new.xlsx")
 
 	for rowNumber, row := range sheet.Rows {
